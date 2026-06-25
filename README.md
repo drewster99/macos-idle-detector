@@ -55,24 +55,21 @@ app just works on launch.
 
 ## Build & run
 
-Requires [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`) and
-macOS 14+.
+Requires macOS 14+ and Xcode 16+.
 
 ```sh
 git clone https://github.com/drewster99/macos-idle-detector.git
 cd macos-idle-detector
-xcodegen generate          # produces IdleDetector.xcodeproj from project.yml
 open IdleDetector.xcodeproj
 ```
 
-Build & run the `IdleDetector` scheme. The `.xcodeproj` is intentionally gitignored — it's
-generated from `project.yml`, which is the source of truth.
+Build & run the `IdleDetector` scheme.
 
 ## Project layout
 
 ```
 macos-idle-detector/
-├── project.yml                 # XcodeGen project definition
+├── IdleDetector.xcodeproj
 ├── screenshot.png
 └── IdleDetector/
     ├── IdleDetectorApp.swift   # @main; owns the IdleMonitor
