@@ -6,9 +6,15 @@
 import SwiftUI
 
 struct ContentView: View {
-    let monitor: IdleMonitor
+    @State private var monitor = IdleMonitor()
 
     private var statusColor: Color { monitor.isIdle ? AppTheme.idle : AppTheme.active }
+
+    /// Maps the two-state source onto a single switch: on = also count synthetic input.
+    private var includeSynthetic: Binding<Bool> {
+        Binding(get: { monitor.source == .combinedSession },
+                set: { monitor.source = $0 ? .combinedSession : .hidSystem })
+    }
 
     private var lastInputDescription: String {
         let seconds = monitor.idleSeconds
@@ -40,7 +46,7 @@ struct ContentView: View {
                 StatTile(label: "Keyboard", seconds: monitor.keyboardIdleSeconds)
             }
 
-            sourceControl(source: $monitor.source)
+            sourceControl(isOn: includeSynthetic)
 
             thresholdControl(threshold: $monitor.idleThreshold)
 
@@ -53,6 +59,7 @@ struct ContentView: View {
         .padding(28)
         .frame(width: 380)
         .background(AppTheme.windowBackground)
+        .task { monitor.start() }
     }
 
     private var statusDial: some View {
@@ -72,17 +79,11 @@ struct ContentView: View {
         .animation(.easeInOut(duration: 0.3), value: monitor.isIdle)
     }
 
-    private func sourceControl(source: Binding<IdleSource>) -> some View {
+    private func sourceControl(isOn: Binding<Bool>) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Monitor")
-            Picker("Monitor", selection: source) {
-                ForEach(IdleSource.allCases) { option in
-                    Text(option.title).tag(option)
-                }
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            Text(source.wrappedValue.detail)
+            Toggle("Also count synthetic input", isOn: isOn)
+                .toggleStyle(.switch)
+            Text(monitor.source.detail)
                 .font(AppFont.caption)
                 .foregroundStyle(.secondary)
         }

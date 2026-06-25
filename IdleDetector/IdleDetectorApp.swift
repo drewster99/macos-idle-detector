@@ -7,12 +7,11 @@ import SwiftUI
 
 @main
 struct IdleDetectorApp: App {
-    @State private var monitor = IdleMonitor()
-
     var body: some Scene {
+        // Each window owns its own IdleMonitor (created inside ContentView), so opening a
+        // second window doesn't share the first's toggle/threshold state.
         WindowGroup {
-            ContentView(monitor: monitor)
-                .task { monitor.start() }
+            ContentView()
         }
         .windowResizability(.contentSize)
     }

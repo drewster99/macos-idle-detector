@@ -13,15 +13,13 @@ import CoreGraphics
 import Foundation
 import Observation
 
-/// Which event-state table idle time is read from. The two behave identically for real
-/// hardware, but diverge for synthetic input: `.combinedSession` counts events injected into
-/// the session, while `.hidSystem` reflects only the physical devices (synthetic input posted
-/// above the HID layer is invisible to it).
-enum IdleSource: String, CaseIterable, Identifiable {
+/// Which event-state table idle time is read from. Both reflect real hardware; they diverge
+/// for synthetic input: `.combinedSession` also counts events injected into the session, while
+/// `.hidSystem` reflects only the physical devices (synthetic input posted above the HID layer
+/// is invisible to it).
+enum IdleSource {
     case combinedSession
     case hidSystem
-
-    var id: String { rawValue }
 
     var stateID: CGEventSourceStateID {
         switch self {
@@ -30,18 +28,10 @@ enum IdleSource: String, CaseIterable, Identifiable {
         }
     }
 
-    /// Short label for the picker.
-    var title: String {
-        switch self {
-        case .combinedSession: return "Count synthetic"
-        case .hidSystem: return "Hardware only"
-        }
-    }
-
-    /// One-line explanation shown under the picker.
+    /// One-line explanation shown under the toggle.
     var detail: String {
         switch self {
-        case .combinedSession: return "combinedSessionState — includes injected/automated input."
+        case .combinedSession: return "combinedSessionState — physical input plus injected/automated input."
         case .hidSystem: return "hidSystemState — physical mouse & keyboard only."
         }
     }
