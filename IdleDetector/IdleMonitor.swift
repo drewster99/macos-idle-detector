@@ -13,6 +13,40 @@ import CoreGraphics
 import Foundation
 import Observation
 
+/// Which event-state table idle time is read from. The two behave identically for real
+/// hardware, but diverge for synthetic input: `.combinedSession` counts events injected into
+/// the session, while `.hidSystem` reflects only the physical devices (synthetic input posted
+/// above the HID layer is invisible to it).
+enum IdleSource: String, CaseIterable, Identifiable {
+    case combinedSession
+    case hidSystem
+
+    var id: String { rawValue }
+
+    var stateID: CGEventSourceStateID {
+        switch self {
+        case .combinedSession: return .combinedSessionState
+        case .hidSystem: return .hidSystemState
+        }
+    }
+
+    /// Short label for the picker.
+    var title: String {
+        switch self {
+        case .combinedSession: return "Count synthetic"
+        case .hidSystem: return "Hardware only"
+        }
+    }
+
+    /// One-line explanation shown under the picker.
+    var detail: String {
+        switch self {
+        case .combinedSession: return "combinedSessionState — includes injected/automated input."
+        case .hidSystem: return "hidSystemState — physical mouse & keyboard only."
+        }
+    }
+}
+
 @MainActor
 @Observable
 final class IdleMonitor {
@@ -27,6 +61,10 @@ final class IdleMonitor {
 
     /// How long input must be absent before the user is considered idle (seconds).
     var idleThreshold: Double = 60
+
+    /// Which event-state table is queried. Switching it lets you watch synthetic input count
+    /// (or not) toward activity in real time.
+    var source: IdleSource = .combinedSession
 
     /// Whether the user is currently considered idle, per `idleThreshold`.
     var isIdle: Bool { idleSeconds >= idleThreshold }
@@ -73,15 +111,16 @@ final class IdleMonitor {
     }
 
     private func sample() {
-        mouseIdleSeconds = Self.idleTime(for: Self.mouseEvents)
-        keyboardIdleSeconds = Self.idleTime(for: Self.keyboardEvents)
+        let state = source.stateID
+        mouseIdleSeconds = Self.idleTime(state, Self.mouseEvents)
+        keyboardIdleSeconds = Self.idleTime(state, Self.keyboardEvents)
         idleSeconds = min(mouseIdleSeconds, keyboardIdleSeconds)
     }
 
-    /// Smallest "seconds since last event" across a set of event types, system-wide.
-    private static func idleTime(for types: [CGEventType]) -> Double {
+    /// Smallest "seconds since last event" across a set of event types, for the given state table.
+    private static func idleTime(_ state: CGEventSourceStateID, _ types: [CGEventType]) -> Double {
         let samples = types.map {
-            CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: $0)
+            CGEventSource.secondsSinceLastEventType(state, eventType: $0)
         }
         return samples.min() ?? 0
     }

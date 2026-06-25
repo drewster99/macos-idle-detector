@@ -40,6 +40,8 @@ struct ContentView: View {
                 StatTile(label: "Keyboard", seconds: monitor.keyboardIdleSeconds)
             }
 
+            sourceControl(source: $monitor.source)
+
             thresholdControl(threshold: $monitor.idleThreshold)
 
             Text("System-wide — measured from the HID event stream for the whole machine, not a single app. No special permission required.")
@@ -68,6 +70,25 @@ struct ContentView: View {
         }
         .frame(width: 180, height: 180)
         .animation(.easeInOut(duration: 0.3), value: monitor.isIdle)
+    }
+
+    private func sourceControl(source: Binding<IdleSource>) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Monitor")
+            Picker("Monitor", selection: source) {
+                ForEach(IdleSource.allCases) { option in
+                    Text(option.title).tag(option)
+                }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            Text(source.wrappedValue.detail)
+                .font(AppFont.caption)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(AppTheme.cardBackground, in: RoundedRectangle(cornerRadius: 10))
     }
 
     private func thresholdControl(threshold: Binding<Double>) -> some View {
