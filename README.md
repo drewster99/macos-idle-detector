@@ -8,6 +8,12 @@ end-to-end reference for *how* you detect user idle time on macOS.
   <img src="screenshot.png" alt="Idle Detector showing a green ACTIVE state" width="320">
 </p>
 
+![Idle Detector running on a live desktop, showing ACTIVE](demo.gif)
+
+<sub>The green **ACTIVE** dial, running on a live desktop (alongside its sibling,
+[PointerTracker](https://github.com/drewster99/PointerTracker)). ▶ Higher-quality
+[demo.mp4](demo.mp4).</sub>
+
 ---
 
 ## What it does
